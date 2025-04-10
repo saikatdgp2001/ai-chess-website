@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AI Chess - Stockfish 17.1</title>
 
-  <!-- ✅ Correct chessboard.js CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+  <!-- jQuery is required for chessboard.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+  
+  <!-- chessboard.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
 
   <style>
     body {
@@ -81,8 +84,8 @@
     </select>
   </div>
 
-  <!-- ✅ JavaScript libraries -->
-  <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <!-- JavaScript libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
 
   <script>
@@ -98,7 +101,35 @@
       pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
     };
 
-    board = Chessboard('board', config);
+    // Initialize the board once the DOM is fully loaded
+    $(document).ready(function() {
+      board = Chessboard('board', config);
+      
+      // Add event listeners to pieces
+      $('.piece').on('click', function() {
+        selectedPiece = $(this).data('piece');
+        alert('Click on a square to place ' + selectedPiece);
+      });
+      
+      // Add click event listener to the board for piece placement
+      $('#board').on('click', function(e) {
+        if (!selectedPiece) return;
+        
+        const boardEl = document.getElementById('board');
+        const rect = boardEl.getBoundingClientRect();
+        const squareSize = rect.width / 8;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const file = String.fromCharCode(97 + Math.floor(x / squareSize));
+        const rank = 8 - Math.floor(y / squareSize);
+        const square = file + rank;
+        
+        const position = board.position();
+        position[square] = selectedPiece;
+        board.position(position);
+        selectedPiece = null;
+      });
+    });
 
     function onDrop(source, target) {
       let move = game.move({ from: source, to: target, promotion: 'q' });
@@ -127,29 +158,6 @@
       game.reset();
       board.start();
     }
-
-    document.querySelectorAll('.piece').forEach(img => {
-      img.addEventListener('click', () => {
-        selectedPiece = img.getAttribute('data-piece');
-        alert('Click on a square to place ' + selectedPiece);
-      });
-    });
-
-    document.getElementById('board').addEventListener('click', (e) => {
-      if (!selectedPiece) return;
-      const boardEl = document.getElementById('board');
-      const rect = boardEl.getBoundingClientRect();
-      const squareSize = rect.width / 8;
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const file = String.fromCharCode(97 + Math.floor(x / squareSize));
-      const rank = 8 - Math.floor(y / squareSize);
-      const square = file + rank;
-      const position = board.position();
-      position[square] = selectedPiece;
-      board.position(position);
-      selectedPiece = null;
-    });
   </script>
 </body>
 </html>
