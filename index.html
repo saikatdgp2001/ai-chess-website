@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Chess - Stockfish 17.1</title>
-  <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard-1.0.0.min.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,6 +15,7 @@
     #board {
       width: 400px;
       margin: 20px auto;
+      min-height: 400px;
     }
     .controls {
       margin-top: 20px;
@@ -64,8 +65,8 @@
     </select>
   </div>
 
-  <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chess.js@1.0.0/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
   <script>
     let board = null;
     let game = new Chess();
@@ -78,6 +79,8 @@
     };
 
     board = Chessboard('board', config);
+
+    window.addEventListener('load', () => board.resize());
 
     function onDrop(source, target) {
       let move = game.move({ from: source, to: target, promotion: 'q' });
@@ -111,17 +114,23 @@
     document.querySelectorAll('.piece').forEach(img => {
       img.addEventListener('click', () => {
         selectedPiece = img.getAttribute('data-piece');
-        board.set({});
         alert('Click on a square to place ' + selectedPiece);
       });
     });
 
     document.getElementById('board').addEventListener('click', (e) => {
       if (!selectedPiece) return;
-      const square = board.squareFromEvent(e);
-      const current = board.position();
-      current[square] = selectedPiece;
-      board.position(current);
+      const boardEl = document.getElementById('board');
+      const rect = boardEl.getBoundingClientRect();
+      const squareSize = rect.width / 8;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const file = String.fromCharCode(97 + Math.floor(x / squareSize));
+      const rank = 8 - Math.floor(y / squareSize);
+      const square = file + rank;
+      const position = board.position();
+      position[square] = selectedPiece;
+      board.position(position);
       selectedPiece = null;
     });
   </script>
